@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Counsel | The Legal Engineering Arcana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #b39151; --void: #020203; --card-bg: #0a0a0c; }
+        body { background-color: var(--void); color: #d1d1d1; font-family: 'Spectral', serif; overflow-x: hidden; }
+        .serif-cap { font-family: 'Cinzel Decorative', cursive; color: var(--gold); text-transform: uppercase; letter-spacing: 0.2em; }
+        .mystic-bg { background: radial-gradient(circle at center, #111 0%, #020203 100%); }
+        
+        .card-container { perspective: 1000px; transition: all 0.5s ease; flex-shrink: 0; }
+        .tarot-card { width: 140px; height: 240px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .tarot-card.flipped { transform: rotateY(180deg) scale(1.1); z-index: 50; }
+        .card-face { position: absolute; width: 100%; height: 100%; border-radius: 12px; backface-visibility: hidden; border: 1px solid rgba(179,145,81,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card-back { background: var(--card-bg); background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20L10 10zm10 10l10 10H0z' fill='%23b39151' fill-opacity='0.03'/%3E%3C/svg%3E"); border-color: var(--gold); }
+        .card-front { background: #050507; transform: rotateY(180deg); border-color: var(--gold); }
+        
+        .hidden { display: none; }
+        .zodiac-btn { border: 1px solid #1a1a1a; transition: 0.3s; padding: 1rem; border-radius: 4px; background: rgba(10,10,12,0.5); }
+        .zodiac-btn:hover { border-color: var(--gold); background: #0c0c0e; transform: translateY(-2px); }
+        .music-toggle { position: fixed; bottom: 20px; left: 20px; font-size: 10px; color: var(--gold); cursor: pointer; opacity: 0.6; z-index: 100; }
+        
+        /* Custom scrollbar for the deck */
+        #deck::-webkit-scrollbar { height: 4px; }
+        #deck::-webkit-scrollbar-track { background: transparent; }
+        #deck::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6 mystic-bg">
+
+    <div id="audio-ui" class="music-toggle uppercase tracking-widest" onclick="toggleAudio()">[ Audio: Off ]</div>
+
+    <div id="app" class="max-w-5xl w-full text-center">
+        
+        <div id="s0">
+            <h1 class="serif-cap text-4xl md:text-6xl mb-4">Cosmic Counsel</h1>
+            <p id="daily-message" class="text-gray-500 italic mb-10 tracking-wide text-lg max-w-2xl mx-auto"></p>
+            <button onclick="startApp()" class="border border-[#b39151] text-[#b39151] px-10 py-3 uppercase text-xs tracking-[0.3em] hover:bg-[#b39151] hover:text-black transition-all">Consult the Arcana</button>
+            <p class="text-[9px] text-gray-700 uppercase tracking-widest mt-8">For entertainment purposes only. Not professional career advice.</p>
+        </div>
+
+        <div id="s1" class="hidden">
+            <h2 class="serif-cap text-2xl mb-8">Identify Thy Essence</h2>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-3 max-w-4xl mx-auto" id="zodiac-root"></div>
+        </div>
+
+        <div id="s2" class="hidden">
+            <h2 class="serif-cap text-2xl mb-2">The Draw</h2>
+            <p class="text-gray-600 italic text-sm mb-12">Select the archetype that beckons from the void.</p>
+            <div class="flex overflow-x-auto gap-6 pb-12 px-10 snap-x scroll-smooth" id="deck"></div>
+        </div>
+
+        <div id="s3" class="hidden">
+            <div id="result-card-ui" class="bg-[#08080a] border border-[#1a1a1a] p-10 max-w-2xl mx-auto rounded-lg shadow-2xl relative overflow-hidden text-left">
+                <h3 class="text-[10px] uppercase tracking-[0.5em] text-gray-600 mb-2">The Revealed Path</h3>
+                <h1 id="res-title" class="serif-cap text-3xl mb-6"></h1>
+                <p id="res-desc" class="text-gray-400 leading-relaxed italic text-md mb-8"></p>
+                
+                <div class="flex flex-wrap gap-4 items-center justify-between border-t border-[#1a1a1a] pt-8">
+                    <div class="flex gap-4">
+                        <button onclick="downloadResult()" class="text-[10px] uppercase tracking-widest text-black bg-[#b39151] px-4 py-2 font-bold">Download Reading</button>
+                        <a href="https://www.linkedin.com" target="_blank" class="text-[10px] uppercase tracking-widest text-[#b39151] border border-[#b39151] px-4 py-2 hover:bg-[#b39151] hover:text-black transition">Find on LinkedIn</a>
+                    </div>
+                    <button onclick="location.reload()" class="text-[10px] uppercase tracking-widest text-gray-500 border-b border-gray-800">Return to Void</button>
+                </div>
+            </div>
+            <canvas id="download-canvas" class="hidden"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let selection = { zodiac: '', arcana: '', icon: '' };
+        let audioCtx, oscillator, mysticGain;
+
+        const dailyGuidance = [
+            "Today, look for the code within the clauses. Automation is merely law made efficient.",
+            "The stars suggest your next breakthrough lies in a tool you haven't mastered yet.",
+            "A shift in perspective reveals that a lawsuit and a logic loop are formed from the same DNA.",
+            "The universe favors the developer who thinks like a strategist today.",
+            "Silence the noise of traditional practice; listen to the hum of the future."
+        ];
+        document.getElementById('daily-message').innerText = dailyGuidance[new Date().getDate() % dailyGuidance.length];
+
+        const signs = [
+            {n:'Aries',e:'♈'},{n:'Taurus',e:'♉'},{n:'Gemini',e:'♊'},{n:'Cancer',e:'♋'},
+            {n:'Leo',e:'♌'},{n:'Virgo',e:'♍'},{n:'Libra',e:'♎'},{n:'Scorpio',e:'♏'},
+            {n:'Sagittarius',e:'♐'},{n:'Capricorn',e:'♑'},{n:'Aquarius',e:'♒'},{n:'Pisces',e:'♓'}
+        ];
+        const zRoot = document.getElementById('zodiac-root');
+        signs.forEach(s => {
+            zRoot.innerHTML += `<button onclick="setZodiac('${s.n}')" class="zodiac-btn flex flex-col items-center">
+                <span class="text-2xl mb-1 text-[#b39151]">${s.e}</span>
+                <span class="text-[9px] uppercase tracking-widest text-gray-400">${s.n}</span>
+            </button>`;
+        });
+
+        // --- EXPANDED CAREER LOGIC (AI, AUTOMATION, DEV Focus) ---
+        const arcanaData = [
+            { id: 'The Fool', icon: '0', role: 'Legal Tech Founder', desc: 'A leap into the unknown. You are destined to build the platforms that disrupt legacy firms entirely.' },
+            { id: 'The Magician', icon: 'I', role: 'AI Prompt Engineer', desc: 'Manifesting results through the precision of language. You design the logic that commands the machines.' },
+            { id: 'The High Priestess', icon: 'II', role: 'Data Privacy Architect', desc: 'Guardian of the unseen. You protect the flow of digital information through deep ethical insight.' },
+            { id: 'The Empress', icon: 'III', role: 'Legal UX Designer', desc: 'Nurturing the experience. You make complex legal workflows feel natural, abundant, and human-centric.' },
+            { id: 'The Emperor', icon: 'IV', role: 'Cyber Governance Lead', desc: 'The ultimate structure. You build the ironclad rules that protect organisational digital assets.' },
+            { id: 'The Hierophant', icon: 'V', role: 'Standardisation Specialist', desc: 'The keeper of frameworks. You align the chaos of tech with the rigid beauty of global standards.' },
+            { id: 'The Lovers', icon: 'VI', role: 'Legal-Dev Liaison', desc: 'The perfect union. You translate the needs of lawyers into the language of developers.' },
+            { id: 'The Chariot', icon: 'VII', role: 'Incident Responder', desc: 'Controlled momentum. You lead the charge when digital systems collapse, driving back to order.' },
+            { id: 'Justice', icon: 'VIII', role: 'Algorithmic Auditor', desc: 'Impartiality in code. You ensure the scales of balance are maintained in every AI decision.' },
+            { id: 'The Hermit', icon: 'IX', role: 'OSINT Investigator', desc: 'Seeking truth in shadows. You find the data others miss through deep, focused research.' },
+            { id: 'Wheel of Fortune', icon: 'X', role: 'Fintech/Crypto Counsel', desc: 'Navigating the cycles of the digital economy and the volatility of decentralised law.' },
+            { id: 'Strength', icon: 'XI', role: 'Threat Hunter', desc: 'Gentle persistence. You track digital vulnerabilities with quiet, disciplined endurance.' },
+            { id: 'The Hanged Man', icon: 'XII', role: 'Tech Strategist', desc: 'Perspective. You find the innovative path because you look at the system from a different angle.' },
+            { id: 'Death', icon: 'XIII', role: 'Digital Transformation Lead', desc: 'The end of the old. You dismantle legacy habits to make way for automation and efficiency.' },
+            { id: 'Temperance', icon: 'XIV', role: 'Workflow Automation Engineer', desc: 'The art of blending. You combine disparate software into a single, flowing legal ecosystem.' },
+            { id: 'The Devil', icon: 'XV', role: 'Red Team Consultant', desc: 'Understanding the adversary. You test the light by mastering the ways of the darkness.' },
+            { id: 'The Tower', icon: 'XVI', role: 'Breach Specialist', desc: 'Managing the fall. You are at your best when the existing structures fail and reconstruction begins.' },
+            { id: 'The Star', icon: 'XVII', role: 'Digital Policy Advocate', desc: 'Visionary hope. You guide the laws that will eventually govern the stars and the internet alike.' },
+            { id: 'The Moon', icon: 'XVIII', role: 'Forensics Analyst', desc: 'Intuition in the dark. You piece together truths from the digital reflections left behind.' },
+            { id: 'The Sun', icon: 'XIX', role: 'Legal Engineering Mentor', desc: 'Clarity and warmth. You illuminate the path for others entering the tech-law frontier.' },
+            { id: 'Judgement', icon: 'XX', role: 'Security Auditor', desc: 'The final reckoning. You deliver the verdict on a system\'s maturity and readiness.' },
+            { id: 'The World', icon: 'XXI', role: 'Full-Stack Legal Developer', desc: 'Completion. You have mastered the code and the law, building entire digital worlds of your own.' }
+        ];
+
+        function startApp() { if (!audioCtx) initAudio(); go(1); }
+        function go(s) {
+            document.querySelectorAll('#app > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById('s' + s).classList.remove('hidden');
+            if (s === 2) buildDeck();
+        }
+        function setZodiac(s) { selection.zodiac = s; go(2); }
+
+        function buildDeck() {
+            const deck = document.getElementById('deck');
+            deck.innerHTML = '';
+            arcanaData.forEach(card => {
+                const container = document.createElement('div');
+                container.className = 'card-container snap-center';
+                container.innerHTML = `
+                    <div class="tarot-card" onclick="flipCard(this, '${card.id}')">
+                        <div class="card-face card-back"></div>
+                        <div class="card-face card-front">
+                            <span class="serif-cap text-3xl mb-2">${card.icon}</span>
+                            <span class="text-[8px] uppercase tracking-widest text-gray-500">${card.id}</span>
+                        </div>
+                    </div>`;
+                deck.appendChild(container);
+            });
+        }
+
+        function flipCard(el, id) {
+            el.classList.add('flipped');
+            selection.arcana = id;
+            setTimeout(() => showResult(), 1000);
+        }
+
+        function showResult() {
+            go(3);
+            const data = arcanaData.find(a => a.id === selection.arcana);
+            document.getElementById('res-title').innerText = data.role;
+            document.getElementById('res-desc').innerText = `As a ${selection.zodiac}, your path is reflected in ${data.id}. ${data.desc}`;
+        }
+
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            mysticGain = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(110, audioCtx.currentTime);
+            mysticGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            oscillator.connect(mysticGain);
+            mysticGain.connect(audioCtx.destination);
+            oscillator.start();
+        }
+
+        function toggleAudio() {
+            const ui = document.getElementById('audio-ui');
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (ui.innerText.includes('Off')) {
+                mysticGain.gain.setTargetAtTime(0.04, audioCtx.currentTime, 2);
+                ui.innerText = '[ Audio: On ]';
+            } else {
+                mysticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 1);
+                ui.innerText = '[ Audio: Off ]';
+            }
+        }
+
+        function downloadResult() {
+            const canvas = document.getElementById('download-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1200; canvas.height = 630;
+            ctx.fillStyle = '#020203';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#b39151'; ctx.lineWidth = 10;
+            ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+            ctx.fillStyle = '#b39151'; ctx.font = 'bold 30px Cinzel Decorative';
+            ctx.fillText('COSMIC COUNSEL READING', 100, 120);
+            ctx.font = '70px Cinzel Decorative';
+            ctx.fillText(document.getElementById('res-title').innerText.toUpperCase(), 100, 240);
+            ctx.fillStyle = '#d1d1d1'; ctx.font = 'italic 28px Spectral';
+            wrapText(ctx, document.getElementById('res-desc').innerText, 100, 320, 1000, 40);
+            const link = document.createElement('a');
+            link.download = 'cosmic-career.png'; link.href = canvas.toDataURL(); link.click();
+        }
+
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            let words = text.split(' '), line = '';
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y); line = words[n] + ' '; y += lineHeight;
+                } else { line = testLine; }
+            }
+            ctx.fillText(line, x, y);
+        }
+    </script>
+</body>
+</html>
