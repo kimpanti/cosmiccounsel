@@ -3,51 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Oracle's Deck | Legal to Tech</title>
+    <title>The Cosmic Counsel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #b39151; --void: #010103; --orb-glow: rgba(179, 145, 81, 0.1); }
+        :root { --gold: #b39151; --void: #010103; --orb-glow: rgba(179, 145, 81, 0.12); }
         body { background-color: var(--void); color: #d1d1d1; font-family: 'Spectral', serif; overflow-x: hidden; }
         .serif-cap { font-family: 'Cinzel Decorative', cursive; color: var(--gold); text-transform: uppercase; letter-spacing: 0.2em; }
         .mystic-bg { background: radial-gradient(circle at center, #0a0a12 0%, #010103 70%, #000 100%); }
         
-        /* Crystal Ball Background */
         #crystal-ball {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 450px; height: 450px; border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 60%), radial-gradient(circle at center, var(--orb-glow) 0%, rgba(0,0,0,0) 70%);
             box-shadow: 0 0 80px 10px var(--orb-glow), inset 0 0 60px 10px rgba(255,255,255,0.02);
-            border: 1px solid rgba(179,145,81,0.1); z-index: -1; transition: all 2s ease-in-out;
+            border: 1px solid rgba(179,145,81,0.1); z-index: -1;
         }
 
-        /* Tarot Card Styling */
         .card-container { perspective: 1000px; flex-shrink: 0; }
-        .tarot-card { 
-            width: 140px; height: 240px; cursor: pointer; position: relative; 
-            transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-        .tarot-card.flipped { transform: rotateY(180deg) scale(1.1); z-index: 50; }
-        .card-face { 
-            position: absolute; width: 100%; height: 100%; border-radius: 12px; 
-            backface-visibility: hidden; border: 1px solid rgba(179,145,81,0.2); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .card-back { 
-            background: #0a0a0c; 
-            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20L10 10zm10 10l10 10H0z' fill='%23b39151' fill-opacity='0.03'/%3E%3C/svg%3E");
-        }
-        .card-front { background: #050507; transform: rotateY(180deg); border-color: var(--gold); }
+        .tarot-card { width: 150px; height: 260px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tarot-card.flipped { transform: rotateY(180deg) scale(1.05); z-index: 50; }
+        .card-face { position: absolute; width: 100%; height: 100%; border-radius: 8px; backface-visibility: hidden; border: 1px solid rgba(179,145,81,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card-back { background: #08080a; background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 0l15 15-15 15L0 15z' fill='%23b39151' fill-opacity='0.02'/%3E%3C/svg%3E"); }
+        .card-front { background: #030305; transform: rotateY(180deg); border-color: var(--gold); }
         
         .hidden { display: none; opacity: 0; }
-        .fade-in { animation: fadeIn 1.5s ease-in forwards; }
+        .fade-in { animation: fadeIn 1s ease-in forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* UI Overlays */
-        .music-toggle { position: fixed; bottom: 20px; left: 20px; font-size: 10px; color: var(--gold); cursor: pointer; opacity: 0.5; z-index: 100; }
-        .disclaimer-fixed { position: fixed; bottom: 20px; right: 20px; font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.1em; z-index: 100; }
+        .audio-btn { position: fixed; bottom: 25px; left: 25px; font-size: 10px; color: var(--gold); cursor: pointer; z-index: 100; text-transform: uppercase; letter-spacing: 2px; border: 1px solid rgba(179, 145, 81, 0.3); padding: 5px 10px; border-radius: 4px; }
+        .disclaimer-fixed { position: fixed; bottom: 25px; right: 25px; font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.15em; z-index: 100; }
         
-        #deck::-webkit-scrollbar { height: 3px; }
+        #deck::-webkit-scrollbar { height: 2px; }
         #deck::-webkit-scrollbar-thumb { background: var(--gold); }
     </style>
 </head>
@@ -55,100 +42,106 @@
 
     <div id="crystal-ball"></div>
     <div class="disclaimer-fixed">For fun only. Not career advice.</div>
-    <div id="audio-ui" class="music-toggle uppercase tracking-widest" onclick="toggleAudio()">[ Audio: Off ]</div>
+    
+    <button id="audio-ui" class="audio-btn" onclick="toggleAudio()">Audio: Off</button>
 
     <div id="app" class="max-w-5xl w-full z-10">
         
         <div id="s0" class="fade-in">
-            <h1 class="serif-cap text-4xl md:text-6xl mb-4">The Oracle's Deck</h1>
-            <p id="daily-guidance" class="text-gray-500 italic mb-10 tracking-wide text-lg max-w-xl mx-auto"></p>
-            <button onclick="startApp()" class="border border-[#b39151] text-[#b39151] px-10 py-3 uppercase text-xs tracking-[0.3em] hover:bg-[#b39151] hover:text-black transition-all">Gaze Within</button>
+            <h1 class="serif-cap text-4xl md:text-6xl mb-4">The Cosmic Counsel</h1>
+            <p id="daily-counsel" class="text-gray-500 italic mb-10 tracking-wide text-lg max-w-xl mx-auto"></p>
+            <button onclick="initSequence()" class="border border-[#b39151] text-[#b39151] px-12 py-4 uppercase text-[10px] tracking-[0.4em] hover:bg-[#b39151] hover:text-black transition-all">Enter the Chambers</button>
         </div>
 
         <div id="s1" class="hidden">
-            <h2 class="serif-cap text-2xl mb-8">Identify Thy Essence</h2>
-            <div class="grid grid-cols-3 md:grid-cols-6 gap-3 max-w-4xl mx-auto" id="zodiac-root"></div>
+            <h2 class="serif-cap text-2xl mb-8">Identify Your Signal</h2>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-4 max-w-4xl mx-auto" id="zodiac-root"></div>
         </div>
 
         <div id="s2" class="hidden">
-            <h2 class="serif-cap text-2xl mb-2">The Draw</h2>
-            <p class="text-gray-600 italic text-sm mb-12">Select the archetype that calls from the digital void.</p>
-            <div class="flex overflow-x-auto gap-6 pb-12 px-10 snap-x scroll-smooth" id="deck"></div>
+            <h2 class="serif-cap text-2xl mb-2">The Discovery</h2>
+            <p class="text-gray-600 italic text-sm mb-12 uppercase tracking-widest">Select one card to break the seal of your precedent.</p>
+            <div class="flex overflow-x-auto gap-8 pb-12 px-10 snap-x scroll-smooth" id="deck"></div>
         </div>
 
         <div id="s3" class="hidden">
-            <div class="bg-[#08080a]/90 backdrop-blur-md border border-[#1a1a1a] p-10 max-w-2xl mx-auto rounded-lg shadow-2xl relative text-left">
-                <h3 class="text-[10px] uppercase tracking-[0.5em] text-gray-600 mb-2">The Revelation</h3>
+            <div class="bg-[#08080a]/80 backdrop-blur-xl border border-[#1a1a1a] p-12 max-w-2xl mx-auto rounded shadow-2xl relative text-left">
+                <h3 class="text-[10px] uppercase tracking-[0.5em] text-gray-600 mb-2">Verdict & Alignment</h3>
                 <h1 id="res-title" class="serif-cap text-3xl mb-6"></h1>
                 <p id="res-desc" class="text-gray-400 leading-relaxed italic text-md mb-8"></p>
                 
-                <div class="border-l-2 border-[#b39151] pl-6 mb-10 py-2 bg-black/30">
-                    <p class="text-[10px] uppercase tracking-widest gold-text font-bold mb-1">What you need to hear:</p>
-                    <p id="res-hear" class="text-gray-500 italic text-sm"></p>
+                <div class="border-l border-[#b39151] pl-6 mb-10 py-2">
+                    <p class="text-[9px] uppercase tracking-[0.3em] gold-text font-bold mb-2">Counsel for the Transition:</p>
+                    <p id="res-hear" class="text-gray-500 italic text-sm leading-relaxed"></p>
                 </div>
 
-                <div class="flex flex-wrap gap-4 items-center justify-between border-t border-[#1a1a1a] pt-8">
-                    <button onclick="shareVision()" class="text-[10px] uppercase tracking-widest text-black bg-[#b39151] px-6 py-2 font-bold hover:bg-white transition">Share Thy Vision</button>
-                    <button onclick="location.reload()" class="text-[10px] uppercase tracking-widest text-gray-500 border-b border-gray-800">Return to Void</button>
+                <div class="flex flex-wrap gap-6 items-center justify-between border-t border-[#1a1a1a] pt-8">
+                    <button onclick="shareVision()" class="text-[10px] uppercase tracking-widest text-black bg-[#b39151] px-8 py-3 font-bold hover:bg-white transition">Share Reading</button>
+                    <button onclick="location.reload()" class="text-[10px] uppercase tracking-widest text-gray-500 border-b border-gray-800">Close File</button>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
         let selection = { zodiac: '', arcana: '' };
         let audioCtx, oscillator, mysticGain;
 
-        const guidanceMessages = [
-            "The transition is not a loss of status, but an evolution of skill.",
-            "Look for the logic loops in the legislation; they are thy hidden maps.",
-            "A digital door opens when a legacy window is closed with intent.",
-            "Thy analytical mind is a blade; use it to cut through the noise of the old ways."
+        const counselNotes = [
+            "Your legal background is not a sunk cost; it is your proprietary advantage.",
+            "In the new era, the strongest contract is the one written in immutable code.",
+            "Precedent is a map, but the digital frontier requires a compass.",
+            "Silence the noise of billable hours. Listen to the frequency of the future."
         ];
-        document.getElementById('daily-guidance').innerText = guidanceMessages[new Date().getDate() % guidanceMessages.length];
+        document.getElementById('daily-counsel').innerText = counselNotes[Math.floor(Math.random() * counselNotes.length)];
 
         const arcanaData = [
-            { id: 'The Magician', icon: 'I', role: 'AI Solution Architect', hear: 'Complexity is thy playground. Trust thy ability to manifest order from chaos.', desc: 'Master of prompt and logic. You design the intelligence that drives the new legal frontier.' },
-            { id: 'The High Priestess', icon: 'II', role: 'Privacy Ethics Lead', hear: 'Guard the secrets with wisdom. The data is sacred; treat it with the reverence it deserves.', desc: 'You navigate the shadows of data protection, ensuring human rights remain central to tech.' },
-            { id: 'The Emperor', icon: 'IV', role: 'Head of Cyber Governance', hear: 'Structure is the foundation of freedom. Build thy frameworks with ironclad precision.', desc: 'You bring the authority of law to the digital realm, establishing GRC standards for the masses.' },
-            { id: 'Justice', icon: 'VIII', role: 'Algorithmic Auditor', hear: 'Balance is not a destination, but a constant adjustment. Verify the code as thou wouldst verify a witness.', desc: 'You ensure AI remains impartial, auditing the machines for fairness and equitable outcomes.' },
-            { id: 'Death', icon: 'XIII', role: 'Digital Transformation Lead', hear: 'The old must die for the new to flourish. Do not fear the end of legacy systems.', desc: 'You are the agent of change, dismantling inefficient habits to make room for automation.' },
-            { id: 'The World', icon: 'XXI', role: 'Full-Stack Legal Engineer', hear: 'Everything is connected. Your mastery of both worlds makes you a bridge that cannot be broken.', desc: 'The ultimate evolution. You build the software and the law simultaneously, creating unified ecosystems.' }
+            { id: 'The Magician', icon: 'I', role: 'AI Systems Architect', hear: 'The complexity of the law has prepared you for the complexity of the machine.', desc: 'You translate high-level legal theory into executable digital logic.' },
+            { id: 'The High Priestess', icon: 'II', role: 'Data Privacy Strategist', hear: 'Privacy is the silent guardian of liberty. Protect it with professional privilege.', desc: 'You navigate global data flows, ensuring compliance without sacrificing ethics.' },
+            { id: 'The Emperor', icon: 'IV', role: 'Head of Digital Governance', hear: 'Order is not found; it is enforced. Build the new digital constitution.', desc: 'You establish the rigid GRC protocols that keep tech giants from legal chaos.' },
+            { id: 'Justice', icon: 'VIII', role: 'Algorithmic Auditor', hear: 'Bias is a flaw in the logic, not just the soul. Scrutinise the code.', desc: 'You investigate automated systems for fairness and transparency.' },
+            { id: 'The Hermit', icon: 'IX', role: 'Cyber Investigator (OSINT)', hear: 'The truth is buried in the metadata. Use isolation to find what others miss.', desc: 'You use open-source intelligence to uncover digital risks.' },
+            { id: 'Death', icon: 'XIII', role: 'Transformation Consultant', hear: 'For the new practice to live, the old model must be dismantled.', desc: 'You lead the charge in removing legacy friction and automating manual tasks.' },
+            { id: 'The World', icon: 'XXI', role: 'Full-Stack Legal Engineer', hear: 'The cycle is complete. You are the synthesis of law and code.', desc: 'The ultimate pivot. You build and litigate within a single unified framework.' }
         ];
 
         const signs = [{n:'Aries',e:'♈'},{n:'Taurus',e:'♉'},{n:'Gemini',e:'♊'},{n:'Cancer',e:'♋'},{n:'Leo',e:'♌'},{n:'Virgo',e:'♍'},{n:'Libra',e:'♎'},{n:'Scorpio',e:'♏'},{n:'Sagittarius',e:'♐'},{n:'Capricorn',e:'♑'},{n:'Aquarius',e:'♒'},{n:'Pisces',e:'♓'}];
-        const zRoot = document.getElementById('zodiac-root');
-        signs.forEach(s => {
-            zRoot.innerHTML += `<button onclick="setZodiac('${s.n}')" class="zodiac-btn flex flex-col items-center">
-                <span class="text-2xl mb-1 text-[#b39151]">${s.e}</span>
-                <span class="text-[9px] uppercase tracking-widest text-gray-400">${s.n}</span>
-            </button>`;
-        });
+        
+        function initSequence() { 
+            // Attempt to boot audio on first real UI interaction
+            if(!audioCtx) initAudio(); 
+            go(1); 
+            renderZodiac(); 
+        }
 
-        function startApp() { if(!audioCtx) initAudio(); go(1); }
+        function renderZodiac() {
+            const zRoot = document.getElementById('zodiac-root');
+            zRoot.innerHTML = '';
+            signs.forEach(s => {
+                zRoot.innerHTML += `<button onclick="setZodiac('${s.n}')" class="zodiac-btn flex flex-col items-center bg-[#0a0a0c] border border-gray-900 p-4 hover:border-[#b39151] transition">
+                    <span class="text-2xl mb-1 text-[#b39151]">${s.e}</span>
+                    <span class="text-[9px] uppercase tracking-widest text-gray-500">${s.n}</span>
+                </button>`;
+            });
+        }
+
         function go(s) {
             document.querySelectorAll('#app > div').forEach(d => d.classList.add('hidden'));
             document.getElementById('s' + s).classList.remove('hidden');
             document.getElementById('s' + s).classList.add('fade-in');
             if (s === 2) buildDeck();
         }
+
         function setZodiac(s) { selection.zodiac = s; go(2); }
 
         function buildDeck() {
             const deck = document.getElementById('deck');
             deck.innerHTML = '';
-            arcanaData.forEach(card => {
+            const shuffled = [...arcanaData].sort(() => Math.random() - 0.5);
+            shuffled.forEach(card => {
                 const container = document.createElement('div');
                 container.className = 'card-container snap-center';
-                container.innerHTML = `
-                    <div class="tarot-card" onclick="flipCard(this, '${card.id}')">
-                        <div class="card-face card-back"></div>
-                        <div class="card-face card-front">
-                            <span class="serif-cap text-3xl mb-2">${card.icon}</span>
-                            <span class="text-[8px] uppercase tracking-widest text-gray-500">${card.id}</span>
-                        </div>
-                    </div>`;
+                container.innerHTML = `<div class="tarot-card" onclick="flipCard(this, '${card.id}')"><div class="card-face card-back"></div><div class="card-face card-front"><span class="serif-cap text-3xl mb-2">${card.icon}</span><span class="text-[8px] uppercase tracking-widest text-gray-500">${card.id}</span></div></div>`;
                 deck.appendChild(container);
             });
         }
@@ -156,45 +149,70 @@
         function flipCard(el, id) {
             el.classList.add('flipped');
             selection.arcana = id;
-            setTimeout(() => showResult(), 1000);
+            setTimeout(() => showResult(), 900);
         }
 
         function showResult() {
             go(3);
             const data = arcanaData.find(a => a.id === selection.arcana);
             document.getElementById('res-title').innerText = data.role;
-            document.getElementById('res-desc').innerText = `As a ${selection.zodiac}, thy alignment with ${data.id} is absolute. ${data.desc}`;
+            document.getElementById('res-desc').innerText = `Your signal as an ${selection.zodiac} has unlocked the ${data.id} protocol. ${data.desc}`;
             document.getElementById('res-hear').innerText = data.hear;
         }
 
         async function shareVision() {
-            const text = `The Oracle has revealed my path: ${document.getElementById('res-title').innerText}. Gaze into the digital mists here:`;
+            const text = `The Cosmic Counsel has issued a verdict on my career path: ${document.getElementById('res-title').innerText}.`;
             if (navigator.share) {
-                try { await navigator.share({ title: 'The Oracle\'s Deck', text: text, url: window.location.href }); } catch (e) {}
-            } else { alert("Share path: " + text); }
+                try { await navigator.share({ title: 'The Cosmic Counsel', text: text, url: window.location.href }); } catch (e) {}
+            } else { alert(text); }
         }
 
+        // --- FIXED AUDIO ENGINE ---
         function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            oscillator = audioCtx.createOscillator();
-            mysticGain = audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(110, audioCtx.currentTime);
-            mysticGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            oscillator.connect(mysticGain);
-            mysticGain.connect(audioCtx.destination);
-            oscillator.start();
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                mysticGain = audioCtx.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(90, audioCtx.currentTime); // Deeper 90Hz drone
+                
+                mysticGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                oscillator.connect(mysticGain);
+                mysticGain.connect(audioCtx.destination);
+                oscillator.start();
+            } catch (e) {
+                console.error("Audio Web API not supported.");
+            }
         }
 
         function toggleAudio() {
             const ui = document.getElementById('audio-ui');
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (ui.innerText.includes('Off')) {
-                mysticGain.gain.setTargetAtTime(0.04, audioCtx.currentTime, 2);
-                ui.innerText = '[ Audio: On ]';
+            
+            // Re-init if for some reason it didn't trigger
+            if (!audioCtx) initAudio();
+
+            // Resume context (required for strict browser policies)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    handleToggle(ui);
+                });
             } else {
-                mysticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 1);
-                ui.innerText = '[ Audio: Off ]';
+                handleToggle(ui);
+            }
+        }
+
+        function handleToggle(ui) {
+            if (ui.innerText.includes('Off')) {
+                // Smooth fade in
+                mysticGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 1.5);
+                ui.innerText = 'Audio: On';
+                ui.style.borderColor = '#b39151';
+            } else {
+                // Smooth fade out
+                mysticGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+                ui.innerText = 'Audio: Off';
+                ui.style.borderColor = 'rgba(179, 145, 81, 0.3)';
             }
         }
     </script>
